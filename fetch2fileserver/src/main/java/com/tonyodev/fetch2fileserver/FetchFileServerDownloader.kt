@@ -24,7 +24,7 @@ open class FetchFileServerDownloader(
     override fun execute(request: Downloader.Request, interruptMonitor: InterruptMonitor?): Downloader.Response? {
         val headers = request.headers
         val range = getRangeForFetchFileServerRequest(headers["Range"] ?: "bytes=0-")
-        val authorization = headers["Authorization"] ?: ""
+        val authorization = headers[ContentFileRequest.FIELD_AUTHORIZATION] ?: ""
         val port = getFetchFileServerPort(request.url)
         val address = getFetchFileServerHostAddress(request.url)
         val inetSocketAddress = InetSocketAddress(address, port)
@@ -38,10 +38,10 @@ open class FetchFileServerDownloader(
                 rangeStart = range.first,
                 rangeEnd = range.second,
                 authorization = authorization,
-                client = headers["Client"] ?: UUID.randomUUID().toString(),
-                customData = headers["CustomData"] ?: "",
-                page = headers["Page"]?.toIntOrNull() ?: 0,
-                size = headers["Size"]?.toIntOrNull() ?: 0,
+                client = headers[ContentFileRequest.FIELD_CLIENT] ?: UUID.randomUUID().toString(),
+                customData = headers[ContentFileRequest.FIELD_CUSTOM_DATA] ?: "",
+                page = headers[ContentFileRequest.FIELD_PAGE]?.toIntOrNull() ?: 0,
+                size = headers[ContentFileRequest.FIELD_SIZE]?.toIntOrNull() ?: 0,
                 persistConnection = false)
         transporter.sendContentFileRequest(contentFileRequest)
         while (interruptMonitor?.isInterrupted == false) {

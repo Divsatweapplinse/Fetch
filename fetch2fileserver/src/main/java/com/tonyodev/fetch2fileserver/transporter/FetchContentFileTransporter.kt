@@ -2,6 +2,12 @@ package com.tonyodev.fetch2fileserver.transporter
 
 import com.tonyodev.fetch2fileserver.ContentFileRequest
 import com.tonyodev.fetch2fileserver.ContentFileResponse
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_CONNECTION
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_CONTENT_LENGTH
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_DATE
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_MD5
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_STATUS
+import com.tonyodev.fetch2fileserver.ContentFileResponse.Companion.FIELD_TYPE
 import org.json.JSONObject
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -50,15 +56,15 @@ class FetchContentFileTransporter(private val client: Socket = Socket()) : Conte
             throwExceptionIfClosed()
             throwIfNotConnected()
             val json = JSONObject(dataInput.readUTF())
-            val requestType = json.getInt("Type")
-            val contentFileId = json.getString("ContentFileId")
-            var rangeStart = json.getLong("RangeStart")
-            var rangeEnd = json.getLong("RangeEnd")
-            val authorization = json.getString("Authorization")
-            val client = json.getString("Client")
-            val customData = json.getString("CustomData")
-            var page = json.getInt("Page")
-            var size = json.getInt("Size")
+            val requestType = json.getInt(ContentFileRequest.FIELD_TYPE)
+            val contentFileId = json.getString(ContentFileRequest.FIELD_CONTENT_FILE_ID)
+            var rangeStart = json.getLong(ContentFileRequest.FIELD_RANGE_START)
+            var rangeEnd = json.getLong(ContentFileRequest.FIELD_RANGE_END)
+            val authorization = json.getString(ContentFileRequest.FIELD_AUTHORIZATION)
+            val client = json.getString(ContentFileRequest.FIELD_CLIENT)
+            val customData = json.getString(ContentFileRequest.FIELD_CUSTOM_DATA)
+            var page = json.getInt(ContentFileRequest.FIELD_PAGE)
+            var size = json.getInt(ContentFileRequest.FIELD_SIZE)
             if ((rangeStart < 0L || rangeStart > rangeEnd) && rangeEnd > -1) {
                 rangeStart = 0L
             }
@@ -71,7 +77,7 @@ class FetchContentFileTransporter(private val client: Socket = Socket()) : Conte
             if (size < -1) {
                 size = -1
             }
-            val persistConnection = json.getBoolean("PersistConnection")
+            val persistConnection = json.getBoolean(ContentFileRequest.FIELD_PERSIST_CONNECTION)
             ContentFileRequest(
                     type = requestType,
                     contentFileId = contentFileId,
@@ -100,12 +106,12 @@ class FetchContentFileTransporter(private val client: Socket = Socket()) : Conte
             throwExceptionIfClosed()
             throwIfNotConnected()
             val json = JSONObject(dataInput.readUTF())
-            val status = json.getInt("Status")
-            val requestType = json.getInt("Type")
-            val connection = json.getString("Connection")
-            val date = json.getLong("Date")
-            val contentLength = json.getLong("ContentLength")
-            val md5 = json.getString("Md5")
+            val status = json.getInt(FIELD_STATUS)
+            val requestType = json.getInt(FIELD_TYPE)
+            val connection = json.getInt(FIELD_CONNECTION)
+            val date = json.getLong(FIELD_DATE)
+            val contentLength = json.getLong(FIELD_CONTENT_LENGTH)
+            val md5 = json.getString(FIELD_MD5)
             ContentFileResponse(
                     status = status,
                     type = requestType,
