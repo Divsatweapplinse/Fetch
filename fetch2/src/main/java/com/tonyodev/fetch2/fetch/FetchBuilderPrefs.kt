@@ -19,4 +19,5 @@ class FetchBuilderPrefs(val appContext: Context,
                         val logger: Logger,
                         val autoStart: Boolean,
                         val retryOnNetworkGain: Boolean,
-                        val requestOptions: Set<RequestOptions>)
+                        val requestOptions: Set<RequestOptions>,
+                        val fetchFileServerDownloader: Downloader?)

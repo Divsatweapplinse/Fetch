@@ -1,10 +1,7 @@
 package com.tonyodev.fetch2.downloader
 
 import android.os.Handler
-import com.tonyodev.fetch2.Download
-import com.tonyodev.fetch2.Downloader
-import com.tonyodev.fetch2.Logger
-import com.tonyodev.fetch2.RequestOptions
+import com.tonyodev.fetch2.*
 import com.tonyodev.fetch2.exception.FetchException
 import com.tonyodev.fetch2.exception.FetchImplementationException
 import com.tonyodev.fetch2.helper.DownloadInfoUpdater
@@ -12,6 +9,8 @@ import com.tonyodev.fetch2.helper.FileDownloaderDelegate
 import com.tonyodev.fetch2.provider.ListenerProvider
 import com.tonyodev.fetch2.provider.NetworkInfoProvider
 import com.tonyodev.fetch2.util.getRequestForDownload
+import com.tonyodev.fetch2.util.isFetchFileServerUrl
+import com.tonyodev.fetch2.util.toDownloadInfo
 import java.util.concurrent.Executors
 
 class DownloadManagerImpl(private val downloader: Downloader,
@@ -25,7 +24,8 @@ class DownloadManagerImpl(private val downloader: Downloader,
                           private val uiHandler: Handler,
                           private val downloadInfoUpdater: DownloadInfoUpdater,
                           private val requestOptions: Set<RequestOptions>,
-                          private val fileTempDir: String) : DownloadManager {
+                          private val fileTempDir: String,
+                          private val fetchFileServerDownloader: Downloader?) : DownloadManager {
 
     private val lock = Object()
     private val executor = Executors.newFixedThreadPool(concurrentLimit)
@@ -38,7 +38,7 @@ class DownloadManagerImpl(private val downloader: Downloader,
         get() = closed
 
     override fun start(download: Download): Boolean {
-        synchronized(lock) {
+        return synchronized(lock) {
             throwExceptionIfClosed()
             if (currentDownloadsMap.containsKey(download.id)) {
                 logger.d("DownloadManager already running download $download")
@@ -49,24 +49,39 @@ class DownloadManagerImpl(private val downloader: Downloader,
                         "the download queue is full")
                 return false
             }
-            val fileDownloader = getNewFileDownloaderForDownload(download)
-            fileDownloader.delegate = getFileDownloaderDelegate()
-            downloadCounter += 1
-            currentDownloadsMap[download.id] = fileDownloader
-            return try {
-                executor.execute {
-                    logger.d("DownloadManager starting download $download")
-                    fileDownloader.run()
-                    synchronized(lock) {
-                        if (currentDownloadsMap.containsKey(download.id)) {
-                            currentDownloadsMap.remove(download.id)
-                            downloadCounter -= 1
+            val delegate = getFileDownloaderDelegate()
+            try {
+                val fileDownloader = getNewFileDownloaderForDownload(download)
+                if (fileDownloader != null) {
+                    fileDownloader.delegate = delegate
+                    downloadCounter += 1
+                    currentDownloadsMap[download.id] = fileDownloader
+                    try {
+                        executor.execute {
+                            logger.d("DownloadManager starting download $download")
+                            fileDownloader.run()
+                            synchronized(lock) {
+                                if (currentDownloadsMap.containsKey(download.id)) {
+                                    currentDownloadsMap.remove(download.id)
+                                    downloadCounter -= 1
+                                }
+                            }
                         }
+                        true
+                    } catch (e: Exception) {
+                        logger.e("DownloadManager failed to start download $download", e)
+                        false
                     }
+                } else {
+                    val downloadInfo = download.toDownloadInfo()
+                    downloadInfo.error = Error.FETCH_FILE_SERVER_DOWNLOADER_NOT_SET
+                    delegate.onError(downloadInfo)
+                    false
                 }
-                true
             } catch (e: Exception) {
-                logger.e("DownloadManager failed to start download $download", e)
+                val downloadInfo = download.toDownloadInfo()
+                downloadInfo.error = Error.FETCH_FILE_SERVER_URL_INVALID
+                delegate.onError(downloadInfo)
                 false
             }
         }
@@ -171,8 +186,18 @@ class DownloadManagerImpl(private val downloader: Downloader,
         }
     }
 
-    override fun getNewFileDownloaderForDownload(download: Download): FileDownloader {
+    override fun getNewFileDownloaderForDownload(download: Download): FileDownloader? {
         val request = getRequestForDownload(download)
+        return if (!isFetchFileServerUrl(request.url)) {
+            getFileDownloader(request, download, downloader)
+        } else if (fetchFileServerDownloader != null) {
+            getFileDownloader(request, download, fetchFileServerDownloader)
+        } else {
+            null
+        }
+    }
+
+    private fun getFileDownloader(request: Downloader.Request, download: Download, downloader: Downloader): FileDownloader {
         return if (downloader.getFileDownloaderType(request) == Downloader.FileDownloaderType.SEQUENTIAL) {
             SequentialFileDownloaderImpl(
                     initialDownload = download,

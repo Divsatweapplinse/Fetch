@@ -28,6 +28,7 @@ abstract class FetchBuilder<out B, out F> constructor(
     private var loggingEnabled = DEFAULT_LOGGING_ENABLED
     private var inMemoryDatabaseEnabled = DEFAULT_IN_MEMORY_DATABASE_ENABLED
     private var downloader = defaultDownloader
+    private var fetchFileServerDownloader: Downloader? = null
     private var globalNetworkType = defaultGlobalNetworkType
     private var logger: Logger = defaultLogger
     private var autoStart = DEFAULT_AUTO_START
@@ -176,6 +177,20 @@ abstract class FetchBuilder<out B, out F> constructor(
         return this
     }
 
+    /**
+     * Sets the downloader client Fetch will use to perform downloads from a Fetch File Server.
+     * If no downloader is specified. Requests with url beginning with "fetchlocal://" will fail
+     * and the error will specify that no downloader found.
+     * @see com.tonyodev.fetch2.Downloader
+     * @see com.tonyodev.fetch2fileserver.FetchFileServerDownloader
+     * @param downloader Downloader Client for Fetch File Server
+     * @return com.tonyodev.fetch2.Fetch.Builder.this
+     * */
+    fun setFetchFileServerDownloader(downloader: Downloader): FetchBuilder<B, F> {
+        this.fetchFileServerDownloader = downloader
+        return this
+    }
+
     /** Gets this builders current configuration settings.
      * @return Builder configuration settings.
      * */
@@ -200,7 +215,8 @@ abstract class FetchBuilder<out B, out F> constructor(
                 logger = prefsLogger,
                 autoStart = autoStart,
                 retryOnNetworkGain = retryOnNetworkGain,
-                requestOptions = requestOptions)
+                requestOptions = requestOptions,
+                fetchFileServerDownloader = fetchFileServerDownloader)
     }
 
     /** Builds a new instance of Fetch with the proper configuration.

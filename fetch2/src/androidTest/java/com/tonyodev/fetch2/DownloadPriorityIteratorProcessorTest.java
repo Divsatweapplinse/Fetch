@@ -62,7 +62,7 @@ public class DownloadPriorityIteratorProcessorTest {
         final String tempDir = FetchUtils.getFileTempDir(appContext);
         final DownloadManager downloadManager = new DownloadManagerImpl(client, concurrentLimit,
                 progessInterval, bufferSize, fetchLogger, networkInfoProvider, retryOnNetworkGain,
-                listenerProvider, uiHandler, downloadInfoUpdater, requestOptions, tempDir);
+                listenerProvider, uiHandler, downloadInfoUpdater, requestOptions, tempDir, null);
         priorityListProcessorImpl = new PriorityListProcessorImpl(
                 handler,
                 new DownloadProvider(databaseManager),

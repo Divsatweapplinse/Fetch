@@ -63,7 +63,7 @@ public class DownloadManagerInstrumentedTest {
         final String tempDir = FetchUtils.getFileTempDir(appContext);
         downloadManager = new DownloadManagerImpl(client, concurrentLimit,
                 progessInterval, bufferSize, fetchLogger, networkInfoProvider, retryOnNetworkGain,
-                listenerProvider, uiHandler, downloadInfoUpdater, requestOptions, tempDir);
+                listenerProvider, uiHandler, downloadInfoUpdater, requestOptions, tempDir, null);
     }
 
     @After
