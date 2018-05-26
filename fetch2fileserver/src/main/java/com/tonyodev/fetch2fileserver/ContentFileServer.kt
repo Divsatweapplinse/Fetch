@@ -1,7 +1,5 @@
 package com.tonyodev.fetch2fileserver
 
-import com.tonyodev.fetch2.Func
-
 interface ContentFileServer {
 
     val id: String
@@ -19,9 +17,9 @@ interface ContentFileServer {
     fun removeContentFile(contentFile: ContentFile)
     fun removeContentFiles(contentFiles: Collection<ContentFile>)
     fun removeAllContentFiles()
-    fun containsContentFile(contentId: Int, func: Func<Boolean>)
+    fun containsContentFile(contentId: Int, callback: (Boolean) -> Unit)
     fun getContentFiles(callback: (List<ContentFile>) -> Unit)
     fun getFullCatalog(callback: (String) -> Unit)
-    fun getContentFile(contentId: Int, func: Func<ContentFile?>)
+    fun getContentFile(contentId: Int, callback: (ContentFile?) -> Unit)
 
 }

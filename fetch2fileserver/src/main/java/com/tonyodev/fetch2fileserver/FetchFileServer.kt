@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import com.tonyodev.fetch2.FetchLogger
-import com.tonyodev.fetch2.Func
 import com.tonyodev.fetch2.util.InterruptMonitor
 import com.tonyodev.fetch2fileserver.database.FetchContentFileDatabase
 import com.tonyodev.fetch2fileserver.provider.ContentFileProvider
@@ -326,29 +325,29 @@ class FetchFileServer private constructor(context: Context,
         }
     }
 
-    override fun containsContentFile(contentId: Int, func: Func<Boolean>) {
+    override fun containsContentFile(contentId: Int, callback: (Boolean) -> Unit) {
         synchronized(lock) {
             throwIfTerminated()
             ioHandler.post {
                 val contentFile = contentFileServerDatabase.get(id)
                 mainHandler.post {
                     if (contentFile != null) {
-                        func.call(true)
+                        callback(true)
                     } else {
-                        func.call(false)
+                        callback(false)
                     }
                 }
             }
         }
     }
 
-    override fun getContentFile(contentId: Int, func: Func<ContentFile?>) {
+    override fun getContentFile(contentId: Int, callback: (ContentFile?) -> Unit) {
         synchronized(lock) {
             throwIfTerminated()
             ioHandler.post {
                 val contentFile = contentFileServerDatabase.get(id)
                 mainHandler.post {
-                    func.call(contentFile)
+                    callback(contentFile)
                 }
             }
         }
