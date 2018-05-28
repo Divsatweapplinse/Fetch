@@ -16,11 +16,11 @@ data class ContentFileResponse(val status: Int = HttpURLConnection.HTTP_UNSUPPOR
             val builder = StringBuilder()
                     .append('{')
                     .append("\"Status\":").append(status).append(',')
-                    .append("\"Type\":").append(type).append(',')
+                    .append("\"Md5\":").append("\"$md5\"").append(',')
                     .append("\"Connection\":").append(connection).append(',')
                     .append("\"Date\":").append(date).append(',')
                     .append("\"ContentLength\":").append(contentLength).append(',')
-                    .append("\"Md5\":").append("\"$md5\"")
+                    .append("\"Type\":").append(type)
                     .append('}')
             return builder.toString()
         }
