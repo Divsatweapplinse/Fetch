@@ -134,7 +134,7 @@ class FetchFileServer private constructor(context: Context,
                         catalogContentFile.file = "/Catalog.json"
                         catalogContentFile
                     } else {
-                        contentFileServerDatabase.get(contentFileIdentifier)
+                        contentFileServerDatabase.get(id)
                     }
                 } catch (e: Exception) {
                     contentFileServerDatabase.get(contentFileIdentifier)
