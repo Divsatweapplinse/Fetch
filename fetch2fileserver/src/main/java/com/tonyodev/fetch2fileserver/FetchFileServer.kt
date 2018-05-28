@@ -415,7 +415,7 @@ class FetchFileServer private constructor(context: Context,
             return this
         }
 
-        private fun setFileServerDatabaseName(databaseName: String): Builder {
+        fun setFileServerDatabaseName(databaseName: String): Builder {
             if (databaseName.isNotEmpty()) {
                 this.contentFileDatabaseName = databaseName
             }
